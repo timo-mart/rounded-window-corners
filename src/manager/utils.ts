@@ -100,6 +100,14 @@ export function getRoundedCornersCfg(win: Meta.Window): RoundedCornerSettings {
 // Weird TypeScript magic :)
 type RoundedCornersEffectType = InstanceType<typeof RoundedCornersEffect>;
 
+// PaperWM annotates Meta.Window while arranging tiled windows. During layout,
+// these target dimensions can match the on-screen clone before Mutter reports
+// the same size through get_frame_rect().
+type PaperWmWindow = Meta.Window & {
+    _targetWidth?: number | null;
+    _targetHeight?: number | null;
+};
+
 /**
  * Get the Clutter.Effect object for the rounded corner effect of a specific
  * window.
@@ -143,13 +151,24 @@ export function computeBounds(
     actor: Meta.WindowActor,
     [x, y]: [number, number, number, number],
 ): Bounds {
-    const frameRect = actor.metaWindow.get_frame_rect();
+    const win = actor.metaWindow as PaperWmWindow;
+    const frameRect = win.get_frame_rect();
+    const targetWidth = win._targetWidth;
+    const targetHeight = win._targetHeight;
+    const frameWidth =
+        typeof targetWidth === 'number' && Number.isFinite(targetWidth)
+            ? targetWidth
+            : frameRect.width;
+    const frameHeight =
+        typeof targetHeight === 'number' && Number.isFinite(targetHeight)
+            ? targetHeight
+            : frameRect.height;
 
     const bounds = {
         x1: x + 1,
         y1: y + 1,
-        x2: x + frameRect.width,
-        y2: y + frameRect.height,
+        x2: x + frameWidth,
+        y2: y + frameHeight,
     };
 
     // Kitty draws its window decoration by itself, so we need to manually
