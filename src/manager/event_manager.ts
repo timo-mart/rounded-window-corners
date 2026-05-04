@@ -164,6 +164,16 @@ function applyEffectTo(actor: RoundedWindowActor) {
             handlers.onSizeChanged(actor);
         }
     });
+    connect(actor, 'notify::clip-rect', () => {
+        if (actor.metaWindow) {
+            handlers.onSizeChanged(actor);
+        }
+    });
+    connect(actor, 'notify::has-clip', () => {
+        if (actor.metaWindow) {
+            handlers.onSizeChanged(actor);
+        }
+    });
     connect(texture, 'size-changed', () => {
         if (actor.metaWindow) {
             handlers.onSizeChanged(actor);

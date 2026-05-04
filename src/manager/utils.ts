@@ -100,14 +100,6 @@ export function getRoundedCornersCfg(win: Meta.Window): RoundedCornerSettings {
 // Weird TypeScript magic :)
 type RoundedCornersEffectType = InstanceType<typeof RoundedCornersEffect>;
 
-// PaperWM annotates Meta.Window while arranging tiled windows. During layout,
-// these target dimensions can match the on-screen clone before Mutter reports
-// the same size through get_frame_rect().
-type PaperWmWindow = Meta.Window & {
-    _targetWidth?: number | null;
-    _targetHeight?: number | null;
-};
-
 /**
  * Get the Clutter.Effect object for the rounded corner effect of a specific
  * window.
@@ -145,31 +137,26 @@ export function windowScaleFactor(win: Meta.Window) {
 /** Compute outer bounds for rounded corners of a window
  *
  * @param actor - The window actor to compute the bounds for.
- * @param [x, y] - The content offset of the window frame in the actor buffer.
+ * @param [x, y, width, height] - The content offsets of the window actor.
  */
 export function computeBounds(
     actor: Meta.WindowActor,
-    [x, y]: [number, number, number, number],
+    [x, y, width, height]: [number, number, number, number],
 ): Bounds {
-    const win = actor.metaWindow as PaperWmWindow;
-    const frameRect = win.get_frame_rect();
-    const targetWidth = win._targetWidth;
-    const targetHeight = win._targetHeight;
-    const frameWidth =
-        typeof targetWidth === 'number' && Number.isFinite(targetWidth)
-            ? targetWidth
-            : frameRect.width;
-    const frameHeight =
-        typeof targetHeight === 'number' && Number.isFinite(targetHeight)
-            ? targetHeight
-            : frameRect.height;
-
     const bounds = {
         x1: x + 1,
         y1: y + 1,
-        x2: x + frameWidth,
-        y2: y + frameHeight,
+        x2: x + actor.width + width,
+        y2: y + actor.height + height,
     };
+
+    if (actor.has_clip) {
+        const [clipX, clipY, clipWidth, clipHeight] = actor.get_clip();
+        bounds.x1 = Math.max(bounds.x1, clipX);
+        bounds.y1 = Math.max(bounds.y1, clipY);
+        bounds.x2 = Math.min(bounds.x2, clipX + clipWidth);
+        bounds.y2 = Math.min(bounds.y2, clipY + clipHeight);
+    }
 
     // Kitty draws its window decoration by itself, so we need to manually
     // clip its shadow and recompute the outer bounds for it.
