@@ -137,17 +137,19 @@ export function windowScaleFactor(win: Meta.Window) {
 /** Compute outer bounds for rounded corners of a window
  *
  * @param actor - The window actor to compute the bounds for.
- * @param [x, y, width, height] - The content offsets of the window actor.
+ * @param [x, y] - The content offset of the window frame in the actor buffer.
  */
 export function computeBounds(
     actor: Meta.WindowActor,
-    [x, y, width, height]: [number, number, number, number],
+    [x, y]: [number, number, number, number],
 ): Bounds {
+    const frameRect = actor.metaWindow.get_frame_rect();
+
     const bounds = {
         x1: x + 1,
         y1: y + 1,
-        x2: x + actor.width + width,
-        y2: y + actor.height + height,
+        x2: x + frameRect.width,
+        y2: y + frameRect.height,
     };
 
     // Kitty draws its window decoration by itself, so we need to manually

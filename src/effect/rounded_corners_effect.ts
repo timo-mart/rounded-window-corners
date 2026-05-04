@@ -101,8 +101,8 @@ export const RoundedCornersEffect = GObject.registerClass(
             let exponent = smoothing * 10 + 2;
             let radius = outerRadius * 0.5 * exponent;
             const maxRadius = Math.min(
-                bounds[3] - bounds[0],
-                bounds[4] - bounds[1],
+                bounds[2] - bounds[0],
+                bounds[3] - bounds[1],
             );
             if (radius > maxRadius) {
                 exponent *= maxRadius / radius;
