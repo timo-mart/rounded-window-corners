@@ -268,6 +268,9 @@ function refreshRoundedCorners(actor: RoundedWindowActor): void {
     // When window size is changed, update uniforms for corner rounding shader.
     const cfg = getRoundedCornersCfg(win);
     const windowContentOffset = computeWindowContentsOffset(win);
+    if (actor.has_clip) {
+        actor.remove_clip();
+    }
     effect.updateUniforms(
         windowScaleFactor(win),
         cfg,
